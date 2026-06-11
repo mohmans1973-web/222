@@ -1,161 +1,136 @@
 ﻿<!DOCTYPE html>
 <html lang="ar">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>تقسيم فيديو إلى Shorts</title>
-
-<style>
-body {
-    text-align: center;
-    background: #111;
-    color: white;
-    font-family: Arial;
-}
-
-input, button {
-    margin: 10px;
-    padding: 10px;
-    width: 250px;
-}
-
-#clips {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-iframe {
-    width: 250px;
-    height: 444px; /* شكل Shorts 9:16 */
-    border-radius: 10px;
-    margin-bottom: 5px;
-}
-
-.clip-box {
-    margin: 10px;
-    padding: 10px;
-    background: #222;
-    border-radius: 10px;
-}
-</style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مشاهدة فيديو تيك توك</title>
+    <script async src="https://www.tiktok.com/embed.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: auto;
+        }
+        input, select, button {
+            margin: 10px 0;
+            padding: 10px;
+            width: 100%;
+            font-size: 16px;
+        }
+        .videos {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-gap: 10px;
+            margin-top: 20px;
+        }
+        .tiktok-embed {
+            width: 100%;
+            max-width: 100%;
+        }
+    </style>
 </head>
-
 <body>
 
-<h1>تقسيم فيديو يوتيوب إلى Shorts</h1>
+    <div class="container">
+        <h2>مشاهدة فيديو تيك توك</h2>
+        <input type="text" id="videoUrl" placeholder="أدخل رابط فيديو تيك توك هنا">
+        <select id="repeatCount">
+            <!-- سيتم ملء القائمة تلقائيًا عبر JavaScript -->
+        </select>
+        <button onclick="generateVideos()">عرض الفيديو</button>
+        
+        <div class="videos" id="videoContainer"></div>
+        <button id="playAllButton" style="margin-top: 20px;" onclick="playAllVideos()">تشغيل جميع الفيديوهات</button>
+        <button id="stopAllButton" style="margin-top: 10px;" onclick="stopAllVideos()">إيقاف جميع الفيديوهات</button>
+    </div>
 
-<input type="text" id="url" placeholder="أدخل رابط يوتيوب">
-<br>
-<input type="number" id="duration" placeholder="مدة كل شورت (ثواني)">
-<br>
-
-<button onclick="loadVideo()">ابدأ التقسيم</button>
-
-<div id="player" style="display:none;"></div>
-<div id="clips"></div>
-
-<script src="https://www.youtube.com/iframe_api"></script>
-
-<script>
-
-let player;
-
-function getVideoId(url) {
-    if (url.includes("youtu.be")) return url.split("/").pop();
-    if (url.includes("shorts")) return url.split("shorts/")[1];
-    if (url.includes("watch?v=")) return url.split("v=")[1].split("&")[0];
-    return null;
-}
-
-// تحميل الفيديو لمعرفة مدته
-function loadVideo() {
-    const url = document.getElementById("url").value;
-    const id = getVideoId(url);
-
-    if (!id) {
-        alert("رابط غير صحيح");
-        return;
-    }
-
-    player = new YT.Player('player', {
-        height: '0',
-        width: '0',
-        videoId: id,
-        events: {
-            'onReady': onReady
+    <script>
+        // إنشاء خيارات القائمة المنسدلة من 1 إلى 25
+        const select = document.getElementById("repeatCount");
+        for (let i = 1; i <= 25; i++) {
+            let option = document.createElement("option");
+            option.value = i;
+            option.textContent = i;
+            select.appendChild(option);
         }
-    });
-}
 
-// بعد تحميل الفيديو
-function onReady() {
-    const totalDuration = Math.floor(player.getDuration());
-    splitVideo(totalDuration);
-}
+        function generateVideos() {
+            const url = document.getElementById("videoUrl").value.trim();
+            const count = parseInt(document.getElementById("repeatCount").value);
+            const videoContainer = document.getElementById("videoContainer");
 
-// تقسيم الفيديو
-function splitVideo(total) {
+            // التحقق من صحة الرابط
+            if (!url.includes("tiktok.com/")) {
+                alert("يرجى إدخال رابط فيديو تيك توك صحيح.");
+                return;
+            }
 
-    const duration = parseInt(document.getElementById("duration").value);
-    const url = document.getElementById("url").value;
-    const id = getVideoId(url);
+            // استخراج معرف الفيديو من رابط تيك توك
+            let videoIdMatch = url.match(/\/video\/(\d+)/);
+            if (!videoIdMatch) {
+                alert("تعذر استخراج معرف الفيديو. يرجى إدخال رابط صحيح.");
+                return;
+            }
+            let videoId = videoIdMatch[1];
 
-    if (!duration) {
-        alert("حدد مدة الشورت");
-        return;
-    }
+            // مسح المحتوى السابق
+            videoContainer.innerHTML = "";
 
-    const container = document.getElementById("clips");
-    container.innerHTML = "";
+            // إنشاء الفيديوهات المتكررة
+            for (let i = 0; i < count; i++) {
+                let blockquote = document.createElement("blockquote");
+                blockquote.className = "tiktok-embed";
+                blockquote.setAttribute("cite", url);
+                blockquote.setAttribute("data-video-id", videoId);
+                blockquote.setAttribute("data-allowfullscreen", "true");
+                blockquote.innerHTML = `
+                    <section>
+                        <a target="_blank" href="${url}">مشاهدة على تيك توك</a>
+                    </section>
+                `;
+                videoContainer.appendChild(blockquote);
+            }
 
-    let start = 0;
-    let index = 1;
+            // إعادة تحميل سكربت تيك توك لتضمين الفيديوهات
+            let script = document.createElement("script");
+            script.src = "https://www.tiktok.com/embed.js";
+            script.async = true;
+            document.body.appendChild(script);
+        }
 
-    while (start < total) {
+        function playAllVideos() {
+            const videos = document.querySelectorAll('.tiktok-embed');
+            videos.forEach(video => {
+                const videoId = video.getAttribute('data-video-id');
+                const playUrl = `https://www.tiktok.com/embed/v${videoId}`;
+                const iframe = document.createElement('iframe');
+                iframe.src = playUrl;
+                iframe.width = '100%';
+                iframe.height = '400';
+                iframe.style.border = 'none';
+                video.appendChild(iframe);
+            });
+        }
 
-        let end = Math.min(start + duration, total);
-
-        const box = document.createElement("div");
-        box.className = "clip-box";
-
-        const iframe = document.createElement("iframe");
-        iframe.src = `https://www.youtube.com/embed/${id}?start=${start}&end=${end}`;
-
-        const text = document.createElement("p");
-        text.innerText = `شورت ${index} | من ${start} إلى ${end} ثانية`;
-
-        // زر فتح الشورت
-        const openBtn = document.createElement("button");
-        openBtn.innerText = "▶ فتح";
-        openBtn.onclick = () => {
-            window.open(`https://www.youtube.com/watch?v=${id}&t=${start}s`);
-        };
-
-        // زر تحميل الشورت (رابط خارجي)
-        const downloadBtn = document.createElement("button");
-        downloadBtn.innerText = "⬇ تحميل";
-        downloadBtn.onclick = () => {
-            window.open(`https://y2mate.nu/en?q=https://www.youtube.com/watch?v=${id}&t=${start}s`);
-        };
-
-        const actions = document.createElement("div");
-        actions.appendChild(openBtn);
-        actions.appendChild(downloadBtn);
-
-        box.appendChild(iframe);
-        box.appendChild(text);
-        box.appendChild(actions);
-
-        container.appendChild(box);
-
-        start += duration;
-        index++;
-    }
-}
-
-</script>
+        function stopAllVideos() {
+            const videos = document.querySelectorAll('.tiktok-embed');
+            videos.forEach(video => {
+                // إزالة جميع iframes من الفيديو
+                while (video.firstChild) {
+                    video.removeChild(video.firstChild);
+                }
+            });
+        }
+    </script>
 
 </body>
 </html>
