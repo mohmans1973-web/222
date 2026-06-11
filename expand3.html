@@ -1,0 +1,161 @@
+﻿<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تقسيم فيديو إلى Shorts</title>
+
+<style>
+body {
+    text-align: center;
+    background: #111;
+    color: white;
+    font-family: Arial;
+}
+
+input, button {
+    margin: 10px;
+    padding: 10px;
+    width: 250px;
+}
+
+#clips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+iframe {
+    width: 250px;
+    height: 444px; /* شكل Shorts 9:16 */
+    border-radius: 10px;
+    margin-bottom: 5px;
+}
+
+.clip-box {
+    margin: 10px;
+    padding: 10px;
+    background: #222;
+    border-radius: 10px;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>تقسيم فيديو يوتيوب إلى Shorts</h1>
+
+<input type="text" id="url" placeholder="أدخل رابط يوتيوب">
+<br>
+<input type="number" id="duration" placeholder="مدة كل شورت (ثواني)">
+<br>
+
+<button onclick="loadVideo()">ابدأ التقسيم</button>
+
+<div id="player" style="display:none;"></div>
+<div id="clips"></div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+
+<script>
+
+let player;
+
+function getVideoId(url) {
+    if (url.includes("youtu.be")) return url.split("/").pop();
+    if (url.includes("shorts")) return url.split("shorts/")[1];
+    if (url.includes("watch?v=")) return url.split("v=")[1].split("&")[0];
+    return null;
+}
+
+// تحميل الفيديو لمعرفة مدته
+function loadVideo() {
+    const url = document.getElementById("url").value;
+    const id = getVideoId(url);
+
+    if (!id) {
+        alert("رابط غير صحيح");
+        return;
+    }
+
+    player = new YT.Player('player', {
+        height: '0',
+        width: '0',
+        videoId: id,
+        events: {
+            'onReady': onReady
+        }
+    });
+}
+
+// بعد تحميل الفيديو
+function onReady() {
+    const totalDuration = Math.floor(player.getDuration());
+    splitVideo(totalDuration);
+}
+
+// تقسيم الفيديو
+function splitVideo(total) {
+
+    const duration = parseInt(document.getElementById("duration").value);
+    const url = document.getElementById("url").value;
+    const id = getVideoId(url);
+
+    if (!duration) {
+        alert("حدد مدة الشورت");
+        return;
+    }
+
+    const container = document.getElementById("clips");
+    container.innerHTML = "";
+
+    let start = 0;
+    let index = 1;
+
+    while (start < total) {
+
+        let end = Math.min(start + duration, total);
+
+        const box = document.createElement("div");
+        box.className = "clip-box";
+
+        const iframe = document.createElement("iframe");
+        iframe.src = `https://www.youtube.com/embed/${id}?start=${start}&end=${end}`;
+
+        const text = document.createElement("p");
+        text.innerText = `شورت ${index} | من ${start} إلى ${end} ثانية`;
+
+        // زر فتح الشورت
+        const openBtn = document.createElement("button");
+        openBtn.innerText = "▶ فتح";
+        openBtn.onclick = () => {
+            window.open(`https://www.youtube.com/watch?v=${id}&t=${start}s`);
+        };
+
+        // زر تحميل الشورت (رابط خارجي)
+        const downloadBtn = document.createElement("button");
+        downloadBtn.innerText = "⬇ تحميل";
+        downloadBtn.onclick = () => {
+            window.open(`https://y2mate.nu/en?q=https://www.youtube.com/watch?v=${id}&t=${start}s`);
+        };
+
+        const actions = document.createElement("div");
+        actions.appendChild(openBtn);
+        actions.appendChild(downloadBtn);
+
+        box.appendChild(iframe);
+        box.appendChild(text);
+        box.appendChild(actions);
+
+        container.appendChild(box);
+
+        start += duration;
+        index++;
+    }
+}
+
+</script>
+
+</body>
+</html>
