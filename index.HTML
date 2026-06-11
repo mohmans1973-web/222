@@ -1,0 +1,124 @@
+﻿<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقسيم فيديو يوتيوب شورت</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f9f9f9;
+        }
+        input, button {
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 16px;
+            width: 300px;
+        }
+        #clips {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .clip-container {
+            display: flex;
+            align-items: center;
+            margin: 10px;
+        }
+        iframe {
+            width: 300px;
+            height: 200px;
+            border: 1px solid #ccc;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>تقسيم فيديو يوتيوب شورت</h1>
+    
+    <h2>تقسيم حسب مدة محددة</h2>
+    <input type="text" id="videoUrl" placeholder="أدخل رابط يوتيوب شورت هنا">
+    <input type="number" id="clipDuration" placeholder="مدة كل لقطة (ثواني)" min="1">
+    <button onclick="splitVideoByDuration()">قسم الفيديو حسب المدة</button>
+    
+    <h2>تقسيم حسب فترة زمنية مخصصة</h2>
+    <input type="number" id="startTime" placeholder="وقت البداية (ثواني)" min="0">
+    <input type="number" id="endTime" placeholder="وقت النهاية (ثواني)" min="1">
+    <button onclick="splitVideoByCustomTime()">قسم الفيديو حسب الفترة</button>
+
+    <div id="clips"></div>
+
+    <script>
+        function splitVideoByDuration() {
+            const videoUrl = document.getElementById('videoUrl').value;
+            const clipDuration = parseInt(document.getElementById('clipDuration').value);
+            const videoId = videoUrl.split('/').pop();
+
+            if (!videoId || !clipDuration) {
+                alert("يرجى إدخال رابط صالح لفيديو يوتيوب شورت ومدة كل لقطة.");
+                return;
+            }
+
+            const totalDuration = 44; // إجمالي مدة الفيديو (يمكن تعديلها حسب الحاجة)
+            const totalClips = Math.ceil(totalDuration / clipDuration);
+            const clipsContainer = document.getElementById('clips');
+            clipsContainer.innerHTML = ''; // مسح اللقطات السابقة
+
+            for (let i = 0; i < totalClips; i++) {
+                const startTime = i * clipDuration;
+                const clip = document.createElement('div');
+                clip.className = 'clip-container';
+
+                const iframe = document.createElement('iframe');
+                const endTime = Math.min(startTime + clipDuration, totalDuration);
+                iframe.src = `https://www.youtube.com/embed/${videoId}?start=${startTime}&end=${endTime}`;
+                iframe.allowFullscreen = true;
+
+                const durationText = document.createElement('span');
+                durationText.textContent = `الفترة: ${startTime} - ${endTime} ثواني`;
+
+                clip.appendChild(iframe);
+                clip.appendChild(durationText);
+                clipsContainer.appendChild(clip);
+            }
+        }
+
+        function splitVideoByCustomTime() {
+            const videoUrl = document.getElementById('videoUrl').value;
+            const startTime = parseInt(document.getElementById('startTime').value);
+            const endTime = parseInt(document.getElementById('endTime').value);
+            const videoId = videoUrl.split('/').pop();
+
+            if (!videoId || isNaN(startTime) || isNaN(endTime) || startTime < 0 || endTime <= startTime) {
+                alert("يرجى إدخال رابط صالح لفيديو يوتيوب شورت ووقت البداية ووقت النهاية بشكل صحيح.");
+                return;
+            }
+
+            const clipsContainer = document.getElementById('clips');
+            clipsContainer.innerHTML = ''; // مسح اللقطات السابقة
+
+            for (let currentStart = startTime; currentStart < endTime; currentStart += 10) {
+                const clip = document.createElement('div');
+                clip.className = 'clip-container';
+
+                const iframe = document.createElement('iframe');
+                const currentEnd = Math.min(currentStart + 10, endTime);
+                iframe.src = `https://www.youtube.com/embed/${videoId}?start=${currentStart}&end=${currentEnd}`;
+                iframe.allowFullscreen = true;
+
+                const durationText = document.createElement('span');
+                durationText.textContent = `الفترة: ${currentStart} - ${currentEnd} ثواني`;
+
+                clip.appendChild(iframe);
+                clip.appendChild(durationText);
+                clipsContainer.appendChild(clip);
+            }
+        }
+    </script>
+</body>
+</html>
